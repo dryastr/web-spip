@@ -1,0 +1,29 @@
+html,
+body {
+  min-height: 100%;
+}
+
+#__next {
+  height: 100%;
+}
+
+code {
+  /* font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvatica Neue', 'Arial',
+    'Noto Sans', 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Sagoe UI Emoji', 'Sagoe UI Symbol', 'Noto Color Emoji' ; */
+  font-family: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Liberation Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color emoji";
+  padding: 0.1rem 0.4rem;
+  font-size: 80% / 85%;
+  color: #d400ff;
+  border-radius: 0.1335rem;
+}
+code:not([class*='language-']):before,
+code:not([class*='language-']):after {
+  content: '`';
+}
+code[class*='language-'] {
+  padding: 0;
+}
+
+.Toastify__toast-container {
+  z-index: 99999999999;
+  }

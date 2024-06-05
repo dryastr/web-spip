@@ -1,0 +1,76 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ development ]
+  pull_request:
+    branches: [ development ]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Setting env
+      run: cp .env-prod.example .env
+    - name: Update NODE_ENV
+      run: sed -i 's/NODE_ENV=development/NODE_ENV=production/g' .env
+    - name: Update NEXT_PUBLIC_URL ENV
+      run: sed -i 's+NEXT_PUBLIC_URL=+NEXT_PUBLIC_URL=http://dev.espip.id+g' .env
+    - name: Update NEXT_PUBLIC_API_URL ENV
+      run: sed -i 's+NEXT_PUBLIC_API_URL=+NEXT_PUBLIC_API_URL=http://api-dev.espip.id+g' .env
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install dependencies
+      run: npm install
+    - name: Build
+      run: CI= npm run build
+    
+    - name: Backup
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSHKEY }}
+        script: |
+         export NVM_DIR=~/.nvm
+         source ~/.nvm/nvm.sh
+         rm -rf /var/www/backup.dev.espip.id
+         mkdir /var/www/backup.dev.espip.id
+         mv /var/www/dev.espip.id/.next/* /var/www/backup.dev.espip.id
+         cd /var/www/dev.espip.id/
+         git pull
+         npm install
+      
+    - name: Deploy
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        port: ${{ secrets.PORT }}
+        key: ${{ secrets.SSHKEY }}
+        source: ".next/*"
+        target: "/var/www/dev.espip.id/.next"
+        strip_components: 1
+        
+    - name: Running
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSHKEY }}
+        script: |
+         export PATH=$PATH:/root/.nvm/versions/node/v17.9.1/bin
+         pm2 restart dev.espip.id
+
+         
